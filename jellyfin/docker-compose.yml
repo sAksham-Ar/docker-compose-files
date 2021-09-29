@@ -1,0 +1,16 @@
+version: "3.5"
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    user: 1001:1001
+    network_mode: "host"
+    volumes:
+      - /home/ubuntu/jellyfin/config:/config
+      - /home/ubuntu/jellyfin/cache:/cache
+      - /home/ubuntu/jellyfin/media:/media
+      - /home/ubuntu/sonarr/downloads:/downloads
+    restart: "unless-stopped"
+    # Optional - alternative address used for autodiscovery
+    environment:
+      - JELLYFIN_PublishedServerUrl=https://media.sakshamar.in

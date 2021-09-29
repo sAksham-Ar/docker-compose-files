@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  gotify:
+    image: gotify/server-arm7
+    ports:
+      - 8080:80
+    environment:
+      - GOTIFY_DEFAULTUSER_NAME=
+      - GOTIFY_DEFAULTUSER_PASS=
+    volumes:
+      - "/home/ubuntu/gotify/data:/app/data"

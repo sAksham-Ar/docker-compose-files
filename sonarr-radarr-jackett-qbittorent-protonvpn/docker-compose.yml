@@ -1,0 +1,95 @@
+version: "3.4"
+services:
+  protonvpn:
+    container_name: protonvpn
+    environment:
+      # Credentials
+      PROTONVPN_USERNAME: 
+      PROTONVPN_PASSWORD: 
+      # Override these where applicable
+      PROTONVPN_SERVER: ${PROTONVPN_SERVER:-NL}
+      PROTONVPN_TIER: ${PROTONVPN_TIER:-0}
+    # Always use semver tags, avoid using tag latest!
+    image: ghcr.io/tprasadtp/protonvpn:latest
+    restart: unless-stopped
+    networks:
+      - internet
+      - proxy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    # Expose pyload container's port here!
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 9090:8080
+      - 8989:8989
+      - 9117:9117
+      - 7878:7878
+      
+  qbittorrent:
+    depends_on:
+      - protonvpn
+    image: ghcr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Asia/Kolkata
+      - WEBUI_PORT=8080
+    network_mode: service:protonvpn
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+
+  sonarr:
+    depends_on:
+      - protonvpn
+    image: ghcr.io/linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Asia/Kolkata
+    network_mode: service:protonvpn
+    volumes:
+      - /home/ubuntu/sonarr/data:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+  jackett:
+    image: ghcr.io/linuxserver/jackett
+    depends_on:
+      - protonvpn
+    container_name: jackett
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=India/Kolkata
+      - AUTO_UPDATE=true #optional
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+    network_mode: service:protonvpn
+    restart: unless-stopped
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: radarr
+    depends_on:
+      - protonvpn
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Asia/Kolkata
+    volumes:
+      - ./radarr_data:/config
+      - ./downloads:/downloads
+    network_mode: service:protonvpn
+    restart: unless-stopped
+volumes:
+  config:
+networks:
+  internet:
+  proxy:
+    internal: true
